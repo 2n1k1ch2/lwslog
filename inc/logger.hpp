@@ -65,9 +65,6 @@ public:
 
 
 
-class FixedLoggerImpl : public ILoggerImpl {
-    
 
-};
 
 
