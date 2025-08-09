@@ -1,9 +1,14 @@
 #pragma once 
-#include "FreeLoggerImpl.hpp"
-#include "FixedLoggerImpl.hpp"
+
+#include "message.hpp"
+#include "sink.hpp"
+
 #include <memory>
 #include <string>
-#include <ostream>
+#include <vector>
+#include <memory>
+
+namespace Logger{
 enum class LogLevel {
     TRACE,   // Detail debug information
     DEBUG,   // Debug messages
@@ -13,61 +18,38 @@ enum class LogLevel {
     FATAL    // fatal errors
 };
 
-class ILoggerImpl {
-public:
-    virtual ~ILoggerImpl() = default;
-
-    virtual void Flush() = 0;
-
-    template<typename T>
-    ILoggerImpl& operator<<(const T& val) {
-        Append(val);
-        return *this;
-    }
-
-protected:
-    virtual void Append(const std::string& str) = 0;
-
-    template<typename T>
-    void Append(const T& val) {
-        std::ostringstream oss;
-        oss << val;
-        Append(oss.str());
-    }
-};
-
 class Logger {
 private:
-    std::unique_ptr<ILoggerImpl> impl_;
+    mutable  std::vector<std::shared_ptr<ILogSink>> sinks_;
+    LogLevel curr_level_;
+    mutable  std::ostringstream oss_;
 public:
-    Logger() : impl_(std::make_unique<FreeLoggerImpl>()) {}
-
-    Logger(LogLevel level) : impl_(std::make_unique<FixedLoggerImpl>(level)) {}
-
+    Logger(){}; 
+    const Logger(LogLevel level)  : curr_level_(level)  {}
+    friend Logger& Flush(Logger& logger);
     template<typename T>
-    Logger& operator<<(const T& val) {
-        (*impl_) << val;
-        return *this;
+    Logger& operator<<(const T& val) const{
+        oss_<<curr_level_<<val;
     }
 
     Logger& operator<<(Logger& (*func)(Logger&)) {
         return func(*this);
     }
-
-    void Flush() {
-        impl_->Flush();
+    Logger& operator<<(LogLevel level)  {
+        curr_level_=level;
+        return *this;
     }
-};
-
-
-
-
-
-
-
-class FixedLoggerImpl : public ILoggerImpl {
     
 
+    
 };
+Logger& Flush(Logger& logger) {
+    Message msg(logger.oss_.str());
+    for(const auto sink : logger.sinks_){
+        sink->Write(msg);
+    }
+}
 
+auto endl = Flush;
 
+}
