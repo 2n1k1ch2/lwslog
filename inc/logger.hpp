@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 
 #include "message.hpp"
 #include "sink.hpp"
@@ -6,50 +6,63 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <memory>
+#include <sstream>
+#include <type_traits>
+#include <concepts>
 
-namespace Logger{
+namespace Logger {
+
 enum class LogLevel {
-    TRACE,   // Detail debug information
-    DEBUG,   // Debug messages
-    INFO,    // information messages
-    WARN,    // warnings
-    ERROR,   // errors
-    FATAL    // fatal errors
+    TRACE,
+    DEBUG,
+    INFO,
+    WARN,
+    ERROR,
+    FATAL
 };
 
 class Logger {
 private:
-    mutable  std::vector<std::shared_ptr<ILogSink>> sinks_;
+    mutable std::vector<std::shared_ptr<ILogSink>> sinks_;
     LogLevel curr_level_;
-    mutable  std::ostringstream oss_;
+    std::ostringstream oss_;
+    mutable Messages msgs_;
+
 public:
-    Logger(){}; 
-    const Logger(LogLevel level)  : curr_level_(level)  {}
+    Logger() = default;
+    explicit Logger(LogLevel level) : curr_level_(level) {}
+
     friend Logger& Flush(Logger& logger);
+
     template<typename T>
-    Logger& operator<<(const T& val) const{
-        oss_<<curr_level_<<val;
+    Logger& operator<<(const T& val) const {
+        oss_ << val;
+        return *this;
     }
 
     Logger& operator<<(Logger& (*func)(Logger&)) {
         return func(*this);
     }
-    Logger& operator<<(LogLevel level)  {
-        curr_level_=level;
+
+    Logger& operator<<(LogLevel level) {
+        curr_level_ = level;
         return *this;
     }
-    
 
-    
-};
-Logger& Flush(Logger& logger) {
-    Message msg(logger.oss_.str());
-    for(const auto sink : logger.sinks_){
-        sink->Write(msg);
+    template<typename... Ts>
+    requires ((std::derived_from<std::remove_reference_t<Ts>, ILogSink>) && ...)
+    void Add_Sink(Ts&&... sinks) {
+        (sinks_.push_back(std::make_shared<std::remove_reference_t<Ts>>(std::forward<Ts>(sinks))), ...);
     }
+};
+
+inline Logger& Flush(Logger& logger) {
+    logger.msgs_.emplace_back(Message(logger.curr_level_, logger.oss_.str()));
+    logger.oss_.str("");   // reset accumulated text
+    logger.oss_.clear();   // reset flags
+    return logger;
 }
 
-auto endl = Flush;
+inline auto endl = Flush;
 
-}
+} // namespace Logger
