@@ -1,68 +1,65 @@
-#pragma once
+#pragma once 
 
-#include "message.hpp"
-#include "sink.hpp"
-
+#include "core/message.hpp"
+#include "core/sink.hpp"
+#include "core/level.hpp"
 #include <memory>
 #include <string>
 #include <vector>
-#include <sstream>
-#include <type_traits>
-#include <concepts>
 
-namespace Logger {
 
-enum class LogLevel {
-    TRACE,
-    DEBUG,
-    INFO,
-    WARN,
-    ERROR,
-    FATAL
-};
+namespace lwslog{
+
+template<typename T>
+concept SinkDerived = std::is_base_of_v<ILogSink, std::remove_reference_t<T>>;
 
 class Logger {
 private:
-    mutable std::vector<std::shared_ptr<ILogSink>> sinks_;
+    mutable  std::vector<std::shared_ptr<ILogSink>> sinks_;
     LogLevel curr_level_;
-    std::ostringstream oss_;
-    mutable Messages msgs_;
-
+    mutable std::ostringstream oss_;
+    mutable  Messages msgs_;
 public:
-    Logger() = default;
-    explicit Logger(LogLevel level) : curr_level_(level) {}
-
+    Logger(){}; 
+    Logger(LogLevel level)  : curr_level_(level)  {}
     friend Logger& Flush(Logger& logger);
-
     template<typename T>
-    Logger& operator<<(const T& val) const {
-        oss_ << val;
-        return *this;
+    Logger& operator<<(const T& val) const{
+        oss_<<val; 
+        return const_cast<Logger&>(*this);
     }
 
     Logger& operator<<(Logger& (*func)(Logger&)) {
         return func(*this);
     }
-
-    Logger& operator<<(LogLevel level) {
-        curr_level_ = level;
+    Logger& operator<<(LogLevel level)  {
+        curr_level_=level;
         return *this;
     }
 
-    template<typename... Ts>
-    requires ((std::derived_from<std::remove_reference_t<Ts>, ILogSink>) && ...)
+    
+
+    template<SinkDerived... Ts>
     void Add_Sink(Ts&&... sinks) {
         (sinks_.push_back(std::make_shared<std::remove_reference_t<Ts>>(std::forward<Ts>(sinks))), ...);
     }
-};
 
-inline Logger& Flush(Logger& logger) {
+
+    
+};
+Logger& Flush(Logger& logger) {
     logger.msgs_.emplace_back(Message(logger.curr_level_, logger.oss_.str()));
-    logger.oss_.str("");   // reset accumulated text
-    logger.oss_.clear();   // reset flags
+    logger.oss_.str("");   //  resetting the accumulated row
+    logger.oss_.clear();   //  resetting the flow flags
+    for(auto & sink : logger.sinks_){
+        for(auto & msg : logger.msgs_){
+            sink->Write(std::move(msg));
+        }
+    }
+    logger.msgs_.clear();
     return logger;
 }
 
-inline auto endl = Flush;
+auto endl = Flush;
 
-} // namespace Logger
+}
