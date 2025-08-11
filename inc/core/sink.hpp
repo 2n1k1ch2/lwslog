@@ -1,9 +1,9 @@
-#include <message.hpp>
-namespace Logger{
+#pragma once
+#include "core/message.hpp"
+namespace lwslog{
 class ILogSink {
-
-    public:
+public:
     virtual ~ILogSink() = default;
-    virtual void Write(Message msg) = 0;
+    virtual void Write(const Message&& msg) = 0;
 };
 }
