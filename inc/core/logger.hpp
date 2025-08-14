@@ -52,9 +52,7 @@ Logger& Flush(Logger& logger) {
     logger.oss_.str("");   //  resetting the accumulated row
     logger.oss_.clear();   //  resetting the flow flags
     for(auto & sink : logger.sinks_){
-        for(auto & msg : logger.msgs_){
-            sink->Write(std::move(msg));
-        }
+        sink->Write(logger.msgs_);
     }
     logger.msgs_.clear();
     return logger;
