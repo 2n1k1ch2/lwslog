@@ -4,6 +4,6 @@ namespace lwslog{
 class ILogSink {
 public:
     virtual ~ILogSink() = default;
-    virtual void Write(const Message& msg) = 0;
+    virtual void Write(const Messages& msgs) = 0;
 };
 }

@@ -11,7 +11,7 @@ private:
     std::mutex mtx;
     std::function<std::string(const Message&)> formatter_;
 public:
-    void Write(const Message& msg) override;
+    void Write(const Messages& msgs) override;
     explicit FileSink(std::filesystem::path path);
 };
 }

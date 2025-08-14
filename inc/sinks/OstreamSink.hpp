@@ -12,8 +12,10 @@ public:
                          std::function<std::string(const Message&)> formatter = Formatter::defaultFormatter)
         : stream_(stream), formatter_(std::move(formatter)) {}
 
-    void Write(const Message& msg) override {
-        stream_ << formatter_(msg) << std::endl;
+    void Write(const Messages& msgs) override {
+        for (const auto & msg : msgs) {
+            stream_ << formatter_(msg) << std::endl;
+        }
     }
 
 };
