@@ -10,7 +10,6 @@ private:
     std::filesystem::path path_;
     std::mutex mtx;
 public:
-    
     void Write(const Message& msg) override;
     explicit FileSink(std::filesystem::path path);
 };
