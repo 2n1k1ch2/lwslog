@@ -11,7 +11,7 @@ public:
                          std::function<std::string(const Message&)> formatter = defaultFormatter)
         : stream_(stream), formatter_(std::move(formatter)) {}
 
-    void Write(const Message&& msg) override {
+    void Write(const Message& msg) override {
         stream_ << formatter_(msg) << std::endl;
     }
 
