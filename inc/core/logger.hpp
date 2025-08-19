@@ -39,11 +39,13 @@ public:
 
     
 
-    template<SinkDerived... Ts>
-    void Add_Sink(Ts&&... sinks) {
-        (sinks_.push_back(std::make_shared<std::remove_reference_t<Ts>>(std::forward<Ts>(sinks))), ...);
+    template<SinkDerived T>
+    void Add_Sink(T&& sink) {
+        using SinkType = std::remove_reference_t<T>;
+        sinks_.push_back(std::shared_ptr<SinkType>(
+            new SinkType(std::forward<T>(sink))
+        ));
     }
-
 
     
 };
