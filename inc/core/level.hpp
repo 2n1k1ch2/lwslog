@@ -10,7 +10,7 @@ namespace lwslog {
     ERROR,   // errors
     FATAL    // fatal errors
 };
-    std::string toString(LogLevel level) {
+inline std::string toString(LogLevel level) {
     switch (level) {
         case LogLevel::TRACE: return "TRACE";
         case LogLevel::DEBUG: return "DEBUG";
