@@ -1,30 +1,40 @@
 name: CI
 
-on:
-  push:
-    branches: [ "main", "master" ]
-  pull_request:
-    branches: [ "main", "master" ]
+on: [push, pull_request]
 
 jobs:
-  lint:
-    name: Run linter
+  build-and-lint:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        
-      - name: Install linters
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+      
+      - name: Install latest GCC
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-tidy cppcheck
+          sudo apt-get install -y gcc-12 g++-12
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 100
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 100
           
-      - name: Run clang-tidy on all files
+      - name: Build project
         run: |
-          find . -name "*.cpp" -o -name "*.h" -o -name "*.hpp" -o -name "*.cc" -o -name "*.cxx" | \
-          xargs -I {} clang-tidy {} -- -std=c++17 -I. || true
+          mkdir -p build
+          cd build
+          cmake ..
+          make -j4
           
-      - name: Run cppcheck on all files
+      - name: Find and check source files
         run: |
-          cppcheck --enable=all --inconclusive --std=c++17 -I. . || true
+          echo "Поиск файлов в: $(pwd)"
+          FILES=$(find . -name "*.cpp" -o -name "*.h" -o -name "*.hpp" | grep -v "external" | grep -v "asio")
+          echo "Найдено файлов: $(echo "$FILES" | wc -l)"
+          echo "$FILES" | head -5
+          
+      - name: Run clang-tidy
+        run: |
+          find . -name "*.cpp" -o -name "*.h" -o -name "*.hpp" | \
+          grep -v "external" | \
+          grep -v "asio" | \
+          xargs -I {} sh -c 'echo "Checking: {}"; clang-tidy {} -p build/ -- -std=c++20 -Iinc || true'
