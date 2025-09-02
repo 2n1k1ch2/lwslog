@@ -1,6 +1,6 @@
-[submodule "inc/core/external/asio"]
+[submodule "libs/asio"]
 	path = libs/asio
 	url = https://github.com/chriskohlhoff/asio.git
-[submodule "libs/external"]
+[submodule "libs/gtest"]
 	path = libs/gtest
 	url = https://github.com/google/googletest.git

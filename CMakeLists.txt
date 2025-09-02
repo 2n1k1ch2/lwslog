@@ -62,6 +62,3 @@ target_include_directories(lwslog_impl PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
 )
 
-# Executable
-add_executable(main temp/test.cpp)
-target_link_libraries(main PRIVATE lwslog lwslog_impl)
