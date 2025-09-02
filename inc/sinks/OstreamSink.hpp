@@ -14,6 +14,9 @@ public:
                          std::function<std::string(const Message&)> formatter = Formatter::defaultFormatter)
         : stream_(stream), formatter_(std::move(formatter)) {}
 
+    OstreamSink(OstreamSink && other) noexcept : stream_(other.stream_) , formatter_(other.formatter_){
+        
+    }
     void Write(const Messages& msgs) override {
         std::lock_guard<std::mutex> lock(mtx_);
         for (const auto & msg : msgs) {
