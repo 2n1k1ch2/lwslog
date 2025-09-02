@@ -9,10 +9,12 @@ private:
     std::ostream& stream_;
     std::function<std::string(const Message&)> formatter_;
     std::mutex mtx_;
+    SyncMode mode_;
+    
 public:
     explicit OstreamSink(std::ostream& stream,
-                         std::function<std::string(const Message&)> formatter = Formatter::defaultFormatter)
-        : stream_(stream), formatter_(std::move(formatter)) {}
+                         std::function<std::string(const Message&)> formatter = Formatter::defaultFormatter , SyncMode mode = SyncMode::SYNC)
+        : stream_(stream), formatter_(std::move(formatter)), mode_(mode){}
 
     OstreamSink(OstreamSink && other) noexcept : stream_(other.stream_) , formatter_(other.formatter_){
         

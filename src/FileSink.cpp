@@ -1,10 +1,11 @@
 #include "sinks/FileSink.hpp"
 
 namespace lwslog {
-FileSink::FileSink(std::filesystem::path path) : path_(std::move(path)),
-    formatter_(&Formatter::defaultFormatter) {
-    
-    }
+FileSink::FileSink(std::filesystem::path path,std::function<std::string(const Message&)> formatter = Formatter::defaultFormatter,
+                   SyncMode mode = SyncMode::SYNC ) : 
+                    path_(std::move(path)),
+                    formatter_(formatter),
+                    mode_(mode) {}
 
 FileSink::FileSink(FileSink&& other) noexcept
     : path_(std::move(other.path_)),

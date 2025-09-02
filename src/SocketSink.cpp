@@ -2,7 +2,12 @@
 
 namespace lwslog{
 
-    SocketSink::SocketSink(Protocol prtcl, std::string host,int port , asio::io_context* external) {
+    SocketSink::SocketSink(Protocol prtcl, std::string host,int port , asio::io_context* external,
+        std::function<std::string(const Message&)> formatter = Formatter::defaultFormatter  ,
+        SyncMode mode = SyncMode::SYNC) 
+        :formatter_(formatter),
+        mode_(mode)
+    {
         if (external) {
             ctx_ = external;        // use external, doesnt delete
         } else {

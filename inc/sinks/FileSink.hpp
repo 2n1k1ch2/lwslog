@@ -12,9 +12,11 @@ private:
     std::filesystem::path path_;
     mutable std::mutex mtx_;
     std::function<std::string(const Message&)> formatter_;
+    SyncMode mode_;
 public:
     void Write(const Messages& msgs)  override  ;
-    explicit FileSink(std::filesystem::path path);
+
+    explicit FileSink(std::filesystem::path path,std::function<std::string(const Message&)> formatter = Formatter::defaultFormatter , SyncMode mode=SyncMode::SYNC);
     FileSink(FileSink&& other) noexcept;
     
     virtual ~FileSink() = default;

@@ -37,9 +37,10 @@ asio::io_context* ctx_;                        // doesn't own
 std::unique_ptr<asio::io_context> own_ctx_;    // own
 std::thread ctx_thread_;
 std::unique_ptr<ISocketImpl> socket_impl_;
+SyncMode mode_;
 public: 
     virtual ~SocketSink() = default;
-    SocketSink(Protocol prtcl , std::string host, int port,asio::io_context* external = nullptr);
+    SocketSink(Protocol prtcl , std::string host, int port,asio::io_context* external = nullptr,std::function<std::string(const Message&)> formatter = Formatter::defaultFormatter , SyncMode mode = SyncMode::SYNC);
     void Write(const Messages& msgs) ;
 
 };
